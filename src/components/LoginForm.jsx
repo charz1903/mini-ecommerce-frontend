@@ -1,57 +1,70 @@
 // src/components/LoginForm.jsx
-import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../store/useAuthStore';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login, user } = useAuthStore();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) navigate('/admin');
-  }, [user, navigate]);
+  const { login } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError('');
-    try {
-      await login(email, password);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
+
+    const result = await login(email, password);
+
+    if (result.success) {
+      navigate('/admin'); // Redirige al panel
+    } else {
+      setError(result.error);
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center mb-8 text-indigo-700">Admin Login</h2>
-        {error && (
-          <p className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">{error}</p>
-        )}
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold text-center mb-6">Iniciar Sesión</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
           required
         />
+
         <input
           type="password"
           placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-6 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
           required
         />
+
+        {error && (
+          <p className="text-red-600 text-sm text-center">{error}</p>
+        )}
+
         <button
           type="submit"
-          className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+          disabled={loading}
+          className={`w-full py-3 rounded-lg font-bold text-white transition ${
+            loading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-indigo-600 hover:bg-indigo-700'
+          }`}
         >
-          Iniciar Sesión
+          {loading ? 'Cargando...' : 'Iniciar Sesión'}
         </button>
       </form>
     </div>

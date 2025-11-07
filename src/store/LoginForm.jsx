@@ -21,7 +21,8 @@ const LoginForm = () => {
       await login(email, password);
     } catch (err) {
       setError(err.response?.data?.message || 'Error al iniciar sesión');
-    }
+      setError(err.response?.data?.message || 'Credenciales inválidas');
+    }     
   };
 
   return (
